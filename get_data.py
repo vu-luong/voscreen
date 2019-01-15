@@ -80,7 +80,7 @@ while True:
         liked=int(liked),
         level=level,
         video_subtitle=str(video_subtitle).replace('"', ''),
-        video_distractor=str(video_distractor),
+        video_distractor=str(video_distractor).replace('"', ''),
         video_file=str(video_file).replace('"', ''),
         video_metadata_name=str(video_metadata_name).replace('"', ''),
         video_metadata_producer=str(video_metadata_producer).replace('"', ''),
