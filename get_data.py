@@ -5,6 +5,17 @@ import os, sys
 
 group_name = input("Difficulty (beginner, elementary, intermediate, upper, advanced): ")
 
+if not os.path.exists('videos/beginner'):
+    os.mkdir('videos/beginner')
+if not os.path.exists('videos/elementary'):
+    os.mkdir('videos/elementary')
+if not os.path.exists('videos/intermediate'):
+    os.mkdir('videos/intermediate')
+if not os.path.exists('videos/upper'):
+    os.mkdir('videos/upper')
+if not os.path.exists('videos/advanced'):
+    os.mkdir('videos/advanced')
+
 if group_name == '':
     group_name = 'advanced'
 
@@ -134,16 +145,6 @@ while True:
     print(download_url)
 
     r = requests.get(download_url, allow_redirects=True)
-    if not os.path.exists('videos/beginner'):
-        os.mkdir('videos/beginner')
-    if not os.path.exists('videos/elementary'):
-        os.mkdir('videos/elementary')
-    if not os.path.exists('videos/intermediate'):
-        os.mkdir('videos/intermediate')
-    if not os.path.exists('videos/upper'):
-        os.mkdir('videos/upper')
-    if not os.path.exists('videos/advanced'):
-        os.mkdir('videos/advanced')
 
     open('videos/' + group_name + '/' + video_file + '.' + videotype, 'wb').write(r.content)
 
