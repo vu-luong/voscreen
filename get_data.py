@@ -12,12 +12,16 @@ s = requests.session()
 connection = sqlite3.connect("voscreen.db")
 cursor = connection.cursor()
 
+headers = {
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+}
+
 # login_url = "https://www.voscreen.com/api/v3/auth/social/facebook/signin/"
-#
+
 # login_data = {
-#     "access_token": "EAADJo6DMosMBAF0itZBQ0KqnXC2E9Y40qyJb7Kd02vUvTPU4zrEQJJZAO8ZCCbz8pglVS7LlK7tInZCEsDpLPx0NZBCFGaorhrRBCZBGKBOZBS14Si8D57V7Dl2opaijd8Cul7Ndb4mzIAuppJD4E0pIWk7MLw393JqNmbUVH79453wv5mc1oy7VrBQlKZAZBAjQ0sIyz0AJLmgZDZD"
+#     "access_token": "EAADJo6DMosMBAKdR8mLdamrUJqlaN4xK58k6ZCdHMYPXnrJQDG6MTj1bOY5uizGCVnZCxMQwiXaXHQp67AAAeG2sD4kjx1Ipgwz3JJf402jjBDeuE6rU5Qk1ldBBeRZCiDe4Xk8EuVrUuGHWbIg3iWihvv6VTV4eZA6iSSGSd1IssZAQI6tTm8OnzwLr5kLOWfxY7FO3DagZDZD"
 # }
-#
+
 # r = s.post(login_url, data=login_data)
 # print(r.content)
 
@@ -32,17 +36,26 @@ insert_sql = 'insert into questions(id, lastitem, liked, level, video_subtitle, 
              '"{video_related_content_url}", "{video_metadata_views}", "{video_sources}", "{language_code}",' \
              '"{url}", "{share_url}", {countdown}, "{choices_answer}", "{choices_distractor}")'
 
-current_question_id = 4415
-video_id = "hclphuflv21k9fna2"
+mark = [-1]
+views = []
 
-mark = []
-
+cnt = 0
+current_question_id = 0
 while True:
-    question_request_data = {"product_name": "voStep", "group_name": group_name, "current_question_id": 4415,
-                             "video_id": "hclphuflv21k9fna2", "language_code": "en"}
 
-    response = s.post(question_url, data=question_request_data)
+    if cnt == 0:
+        question_request_data = {"product_name": "voStep", "group_name": group_name, "language_code": "en",
+                                 "viewed": []}
+    else:
+        question_request_data = {"product_name": "voStep", "group_name": group_name, "language_code": "en",
+                                 "current_question_id": current_question_id, "viewed": mark}
+
+    # print(question_request_data)
+    cnt = cnt + 1
+
+    response = s.post(question_url, data=question_request_data, headers=headers)
     ques_res_json = response.content
+    # print(ques_res_json)
     ques_res_obj = json.loads(ques_res_json)
     question = ques_res_obj["question"]
 
@@ -67,9 +80,16 @@ while True:
     choices_answer = question["choices"]["answer"]
     choices_distractor = question["choices"]["distractor"]
 
+    current_question_id = question_id
+    video_id = video_file
+
+    # print(mark)
+
+    # print(question_id)
     # print(mark)
 
     if question_id in mark:
+        print('Duplicated!!!')
         continue
 
     mark.append(question_id)
@@ -113,9 +133,7 @@ while True:
     print(download_url)
 
     r = requests.get(download_url, allow_redirects=True)
-    open('videos/' + video_file + '.' + videotype, 'wb').write(r.content)
+    open('videos/' + group_name + '/' + video_file + '.' + videotype, 'wb').write(r.content)
 
-    current_question_id = question_id
-    video_id = video_file
 
     # break
