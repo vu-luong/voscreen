@@ -2,7 +2,7 @@ import requests
 import sqlite3
 import json
 
-group_name = input("Difficulty (beginner, elementary, intermediate, upper, advanced: ")
+group_name = input("Difficulty (beginner, elementary, intermediate, upper, advanced): ")
 
 if group_name == '':
     group_name = 'advanced'
@@ -103,6 +103,7 @@ while True:
         cursor.execute(sql_command)
         connection.commit()
     except Exception as ex:
+        print(sql_command)
         print(ex)
         continue
 
