@@ -3,26 +3,28 @@ import sqlite3
 import json
 import os, sys
 
-group_name = input("Difficulty (beginner, elementary, intermediate, upper, advanced): ")
-
-if not os.path.exists('videos/beginner'):
-    os.mkdir('videos/beginner')
-if not os.path.exists('videos/elementary'):
-    os.mkdir('videos/elementary')
-if not os.path.exists('videos/intermediate'):
-    os.mkdir('videos/intermediate')
-if not os.path.exists('videos/upper'):
-    os.mkdir('videos/upper')
-if not os.path.exists('videos/advanced'):
-    os.mkdir('videos/advanced')
+modes = ["beginner", "elementary", "intermediate", "upper", "advanced", "am_is_are", "can",
+         "will", "what_questions", "imperatives", "was_were", "with_without", "if", "in_at_on",
+         "about_for_from", "present_simple", "past_simple", "present_continuous", "present_perfect",
+         "relative_clauses", "comparatives_superlatives", "why", "noun_clauses", "adverb_clauses",
+         "modals", "passives", "phrasal_verbs", "tenses", "conjunctions", "questions_all", "singular_plural",
+         "be_going_to", "1_to_3", "4_to_6", "7_to_9", "10_to_12", "13_and_more", "red", "yellow", "green"]
+group_name = input("Input mode in {}: ".format(modes))
 
 if group_name == '':
     group_name = 'advanced'
+
+create_sql = 'CREATE TABLE if not exists "{}" ( id INTEGER PRIMARY KEY, lastitem boolean, liked boolean, level integer, video_subtitle TEXT, video_distractor TEXT, video_file TEXT, video_metadata_name TEXT, video_metadata_producer text, video_metadata_director text, video_metadata_details text, video_related_content_url text, video_metadata_views text, video_sources text, language_code text, url text, share_url text, countdown integer, choices_answer text, choices_distractor text)'
+
+create_command = create_sql.format(group_name)
 
 s = requests.session()
 
 connection = sqlite3.connect("voscreen.db")
 cursor = connection.cursor()
+
+cursor.execute(create_command)
+connection.commit()
 
 headers = {
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
@@ -39,17 +41,25 @@ headers = {
 
 question_url = "https://www.voscreen.com/api/v3/game/question/"
 
-insert_sql = 'insert into questions(id, lastitem, liked, level, video_subtitle, video_distractor, video_file,' \
+insert_sql = 'insert into "{mode}"(id, lastitem, liked, level, video_subtitle, video_distractor, video_file,' \
              'video_metadata_name, video_metadata_producer, video_metadata_director, video_metadata_details,' \
              'video_related_content_url, video_metadata_views, video_sources, language_code,' \
-             'url, share_url, countdown, choices_answer, choices_distractor, group_name) values({id}, {lastitem}, {liked}, {level}, ' \
+             'url, share_url, countdown, choices_answer, choices_distractor) values({id}, {lastitem}, {liked}, {level}, ' \
              '"{video_subtitle}", "{video_distractor}", "{video_file}",' \
              '"{video_metadata_name}", "{video_metadata_producer}", "{video_metadata_director}", "{video_metadata_details}", ' \
              '"{video_related_content_url}", "{video_metadata_views}", "{video_sources}", "{language_code}",' \
-             '"{url}", "{share_url}", {countdown}, "{choices_answer}", "{choices_distractor}", "{group_name}")'
+             '"{url}", "{share_url}", {countdown}, "{choices_answer}", "{choices_distractor}")'
 
-mark = [-1]
-views = []
+select_sql = 'select id from "{mode}"'
+
+cursor.execute(select_sql.format(mode=group_name))
+lines = cursor.fetchall()
+mark = []
+for line in lines:
+    mark.append(line[0])
+
+if len(mark) == 0:
+    mark = [-1]
 
 cnt = 0
 current_question_id = 0
@@ -57,10 +67,10 @@ while True:
     try:
 
         if cnt == 0:
-            question_request_data = {"product_name": "voStep", "group_name": group_name, "language_code": "en",
+            question_request_data = {"group_name": group_name, "language_code": "en",
                                      "viewed": []}
         else:
-            question_request_data = {"product_name": "voStep", "group_name": group_name, "language_code": "en",
+            question_request_data = {"group_name": group_name, "language_code": "en",
                                      "current_question_id": current_question_id, "viewed": mark}
 
         # print(question_request_data)
@@ -104,7 +114,8 @@ while True:
 
         mark.append(question_id)
 
-        sql_command = insert_sql.format(
+        insert_command = insert_sql.format(
+            mode=group_name,
             id=question_id,
             lastitem=int(lastitem),
             liked=int(liked),
@@ -125,16 +136,15 @@ while True:
             countdown=countdown,
             choices_answer=str(choices_answer).replace('"', ''),
             choices_distractor=str(choices_distractor).replace('"', ''),
-            group_name=str(group_name).replace('"', '')
         )
 
         # print(sql_command)
 
         try:
-            cursor.execute(sql_command)
+            cursor.execute(insert_command)
             connection.commit()
         except Exception as ex:
-            print(sql_command)
+            print(insert_command)
             print(ex)
             continue
 
@@ -143,10 +153,12 @@ while True:
         # print(videotype)
         print(download_url)
 
-        r = requests.get(download_url, allow_redirects=True)
-
-        open('videos/' + group_name + '/' + video_file + '.' + videotype, 'wb').write(r.content)
-
+        filepath = 'videos/' + video_file + '.' + videotype
+        if os.path.exists(filepath):
+            print('Video file existed!')
+        else:
+            r = requests.get(download_url, allow_redirects=True)
+            open(filepath, 'wb').write(r.content)
 
     except Exception as ex:
         print('Necessary information for debugging!')
@@ -163,7 +175,7 @@ while True:
         print('----------mark------------')
         print(mark)
         print('----------sql_command------------')
-        print(sql_command)
+        print(insert_command)
         print('----------Exception------------')
         print(ex)
         break
