@@ -2,6 +2,11 @@ import requests
 import sqlite3
 import json
 
+group_name = input("Difficulty: ")
+
+if group_name == '':
+    group_name = 'advanced'
+
 s = requests.session()
 
 connection = sqlite3.connect("voscreen.db")
@@ -33,7 +38,7 @@ video_id = "hclphuflv21k9fna2"
 mark = []
 
 while True:
-    question_request_data = {"product_name": "voStep", "group_name": "advanced", "current_question_id": 4415,
+    question_request_data = {"product_name": "voStep", "group_name": group_name, "current_question_id": 4415,
                              "video_id": "hclphuflv21k9fna2", "language_code": "en"}
 
     response = s.post(question_url, data=question_request_data)
@@ -94,8 +99,12 @@ while True:
 
     # print(sql_command)
 
-    cursor.execute(sql_command)
-    connection.commit()
+    try:
+        cursor.execute(sql_command)
+        connection.commit()
+    except Exception as ex:
+        print(ex)
+        continue
 
     videotype, download_url = video_sources.popitem()
 
