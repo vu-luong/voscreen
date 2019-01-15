@@ -2,7 +2,7 @@ import requests
 import sqlite3
 import json
 
-group_name = input("Difficulty: ")
+group_name = input("Difficulty (beginner, elementary, intermediate, upper, advanced: ")
 
 if group_name == '':
     group_name = 'advanced'
