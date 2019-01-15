@@ -105,4 +105,7 @@ while True:
     r = requests.get(download_url, allow_redirects=True)
     open('videos/' + video_file + '.' + videotype, 'wb').write(r.content)
 
+    current_question_id = question_id
+    video_id = video_file
+
     # break
