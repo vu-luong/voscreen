@@ -56,7 +56,7 @@ for mode in modes:
         datas = cursor.fetchall()
         if len(datas) > 0:
             tags = datas[0][1]
-            tags = tags + ', vS::' + product + '::' + mode
+            tags = tags + ' vS::' + product + '::' + mode
             update_sql = 'update "all_modes" set tags="{tags}" where id = {id}'
             update_command = update_sql.format(tags=tags, id=question_id)
             cursor.execute(update_command)
