@@ -48,5 +48,5 @@ for line in lines:
 
         if cnt in marks:
             outcnt = outcnt + 1
-            cv2.imwrite('images/' + filename + '_' + str(outcnt) + '.png', frame)
+            cv2.imwrite('images/' + filename + '_' + str(outcnt) + '.jpg', frame)
         cnt = cnt + 1
